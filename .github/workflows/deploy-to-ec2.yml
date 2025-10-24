@@ -3,8 +3,12 @@ name: Build and Deploy Spring Boot App to EC2
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
 
 env:
   IMAGE_NAME: rosspalletscan-app
