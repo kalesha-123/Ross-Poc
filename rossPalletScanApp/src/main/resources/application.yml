@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/Ross_scanning_Data?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: Aspire@123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate.format_sql: true
+
+# Multipart settings for image upload
+spring.servlet.multipart:
+  max-file-size: 10MB
+  max-request-size: 10MB
+
+# OCR settings
+app:
+  ocr:
+    language: eng
+    min-confidence: 10
+    tessdata-path: "C:/Users/ganesh.naik/AppData/Local/Programs/Tesseract-OCR/tessdata"
