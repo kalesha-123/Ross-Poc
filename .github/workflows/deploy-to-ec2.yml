@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: RossPalletScan-app
-  CONTAINER_NAME: RossPalletScan-app
+  IMAGE_NAME: rosspalletscan-app
+  CONTAINER_NAME: rosspalletscan-app
   # EC2_USER: ec2-user
   # EC2_HOST: ${{ secrets.EC2_HOST }}
   # EC2_KEY: ${{ secrets.EC2_SSH_KEY }}
