@@ -127,6 +127,7 @@ public class AssignmentService {
 			body.put("status", "SUCCESS");
 			body.put("message", "Boxes fetched");
 			body.put("count", list.size());
+			body.put("masterContainerId", pallet.getMasterContainerId());
 			body.put("data", list);
 
 			return ResponseEntity.ok(body);
