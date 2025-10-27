@@ -18,8 +18,7 @@ public class RossLabelExtractResponse {
     private String grossWeightKg;   // G.W (in KG)
     private String measurement;     // MEASUREMENT
     private String consignedTo;     // CONSIGNED TO
-    private String deliverTo;       // DELIVER TO (name line)
-    private String deliverToAddress;// following address line(s) if present
+    private String deliverTo;       // DELIVER TO
     private String countryOfOrigin; // COUNTRY OF ORIGIN
     private String cartonNo;        // CARTON NO
 
@@ -29,7 +28,7 @@ public class RossLabelExtractResponse {
                                               String imageFilename, String rawText,
                                               String rossPo, String rossStyle, String itemDescription, String color,
                                               String rossSkuNumber, String quantity, String netWeightKg, String grossWeightKg,
-                                              String measurement, String consignedTo, String deliverTo, String deliverToAddress,
+                                              String measurement, String consignedTo, String deliverTo,
                                               String countryOfOrigin, String cartonNo) {
         RossLabelExtractResponse r = new RossLabelExtractResponse();
         r.status = status;
@@ -47,7 +46,6 @@ public class RossLabelExtractResponse {
         r.measurement = measurement;
         r.consignedTo = consignedTo;
         r.deliverTo = deliverTo;
-        r.deliverToAddress = deliverToAddress;
         r.countryOfOrigin = countryOfOrigin;
         r.cartonNo = cartonNo;
         return r;
@@ -69,7 +67,6 @@ public class RossLabelExtractResponse {
     public String getMeasurement() { return measurement; }
     public String getConsignedTo() { return consignedTo; }
     public String getDeliverTo() { return deliverTo; }
-    public String getDeliverToAddress() { return deliverToAddress; }
     public String getCountryOfOrigin() { return countryOfOrigin; }
     public String getCartonNo() { return cartonNo; }
 }

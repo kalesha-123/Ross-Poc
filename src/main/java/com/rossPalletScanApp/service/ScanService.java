@@ -27,7 +27,7 @@ public class ScanService {
         if (imageFile == null || imageFile.isEmpty()) {
             return ResponseEntity.badRequest().body(RossLabelExtractResponse.of(
                     "ERROR", "No image provided", 0, null,
-                    null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+                    null, null, null, null, null, null, null, null, null, null, null, null, null, null
             ));
         }
 
@@ -55,7 +55,7 @@ public class ScanService {
                                 imageFile.getOriginalFilename(),
                                 raw,
                                 null, null, null, null, null, null, null, null, null,
-                                null, null, null, null, null
+                                null, null, null, null
                         )
                 );
             }
@@ -88,7 +88,6 @@ public class ScanService {
                         p.getMeasurement(),
                         p.getConsignedTo(),
                         p.getDeliverTo(),
-                        p.getDeliverToAddress(),
                         p.getCountryOfOrigin(),
                         p.getCartonNo()
                     )
@@ -101,7 +100,7 @@ public class ScanService {
                     confidence, imageFile.getOriginalFilename(), raw,
                     rossPo, p.getRossStyle(), p.getItemDescription(), color,
                     rossSkuNumber, p.getQuantity(), p.getNetWeightKg(), p.getGrossWeightKg(),
-                    p.getMeasurement(), p.getConsignedTo(), p.getDeliverTo(), p.getDeliverToAddress(),
+                    p.getMeasurement(), p.getConsignedTo(), p.getDeliverTo(),
                     p.getCountryOfOrigin(), p.getCartonNo()
             );
 
