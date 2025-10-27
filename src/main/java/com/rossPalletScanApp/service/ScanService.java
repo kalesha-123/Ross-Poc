@@ -22,7 +22,6 @@ public class ScanService {
         this.ocrService = ocrService;
         this.rossLabelParser = rossLabelParser;
     }
-
     /** API #1: OCR only, no barcode, no DB */
     public ResponseEntity<RossLabelExtractResponse> extractRossLabel(MultipartFile imageFile) throws Exception {
         if (imageFile == null || imageFile.isEmpty()) {
@@ -64,12 +63,44 @@ public class ScanService {
             // 3) Parse ROSS label
             RossLabelParser.Parsed p = rossLabelParser.parse(raw);
 
-            // 4) Build response
+            // 3a) Validate mandatory trio: rossPo, color, rossSkuNumber
+            String rossPo = p.getRossPo();
+            String color = p.getColor();
+            String rossSkuNumber = p.getRossSkuNumber();
+
+            if (isBlank(rossPo) && isBlank(color) && isBlank(rossSkuNumber)) {
+                // If all 3 are missing, return an error
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    RossLabelExtractResponse.of(
+                        "ERROR",
+                        "Unable to extract PO, Color, and SKU from the image. Please re-scan with better lighting/focus, or ensure the full label is visible.",
+                        confidence,
+                        imageFile.getOriginalFilename(),
+                        raw,
+                        null, // rossPo
+                        p.getRossStyle(),
+                        p.getItemDescription(),
+                        null, // color
+                        null, // rossSkuNumber
+                        p.getQuantity(),
+                        p.getNetWeightKg(),
+                        p.getGrossWeightKg(),
+                        p.getMeasurement(),
+                        p.getConsignedTo(),
+                        p.getDeliverTo(),
+                        p.getDeliverToAddress(),
+                        p.getCountryOfOrigin(),
+                        p.getCartonNo()
+                    )
+                );
+            }
+
+            // 4) Build response when validation passes (at least one of the trio present)
             RossLabelExtractResponse resp = RossLabelExtractResponse.of(
                     "SUCCESS", "Label extracted successfully",
                     confidence, imageFile.getOriginalFilename(), raw,
-                    p.getRossPo(), p.getRossStyle(), p.getItemDescription(), p.getColor(),
-                    p.getRossSkuNumber(), p.getQuantity(), p.getNetWeightKg(), p.getGrossWeightKg(),
+                    rossPo, p.getRossStyle(), p.getItemDescription(), color,
+                    rossSkuNumber, p.getQuantity(), p.getNetWeightKg(), p.getGrossWeightKg(),
                     p.getMeasurement(), p.getConsignedTo(), p.getDeliverTo(), p.getDeliverToAddress(),
                     p.getCountryOfOrigin(), p.getCartonNo()
             );
@@ -83,4 +114,10 @@ public class ScanService {
             }
         }
     }
+
+    /** Utility to treat null/blank uniformly */
+    private boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+
 }
