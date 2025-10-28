@@ -20,4 +20,4 @@ app:
   ocr:
     language: eng
     min-confidence: 10
-    tessdata-path: "C:/Users/ganesh.naik/AppData/Local/Programs/Tesseract-OCR/tessdata"
+    tessdata-path: "/usr/share/tesseract-ocr/5/tessdata"
