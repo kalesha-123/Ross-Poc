@@ -13,9 +13,9 @@ permissions:
 env:
   IMAGE_NAME: rosspalletscan-app
   CONTAINER_NAME: rosspalletscan-app
-  # EC2_USER: ec2-user
-  # EC2_HOST: ${{ secrets.EC2_HOST }}
-  # EC2_KEY: ${{ secrets.EC2_SSH_KEY }}
+  UBUNTU_USER: ubuntu
+  UBUNTU_HOST: ${{ secrets.UBUNTU_HOST }}
+  UBUNTU_KEY: ${{ secrets.UBUNTU_SSH_KEY }}
   REGISTRY: ghcr.io/${{ github.repository_owner }}
   TAG: latest
 
@@ -56,30 +56,30 @@ jobs:
         run: |
           docker push $REGISTRY/$IMAGE_NAME:$TAG
 
-  # deploy:
-  #   name: Deploy to EC2
-  #   runs-on: ubuntu-latest
-  #   needs: build-and-push
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: build-and-push
 
-  #   steps:
-  #     - name: Deploy on EC2 via SSH
-  #       uses: appleboy/ssh-action@v1.1.0
-  #       with:
-  #         host: ${{ secrets.EC2_HOST }}
-  #         username: ec2-user
-  #         key: ${{ secrets.EC2_SSH_KEY }}
-  #         script: |
-  #           echo "Logging in to GHCR..."
-  #           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+    steps:
+      - name: Deploy on VM via SSH
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.UBUNTU_HOST }}
+          username: ubuntu
+          key: ${{ secrets.UBUNTU_SSH_KEY }}
+          script: |
+            echo "Logging in to GHCR..."
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-  #           echo "Pulling latest image..."
-  #           docker pull $REGISTRY/$IMAGE_NAME:$TAG
+            echo "Pulling latest image..."
+            docker pull $REGISTRY/$IMAGE_NAME:$TAG
 
-  #           echo "Stopping old container..."
-  #           docker stop $CONTAINER_NAME || true
-  #           docker rm $CONTAINER_NAME || true
+            echo "Stopping old container..."
+            docker stop $CONTAINER_NAME || true
+            docker rm $CONTAINER_NAME || true
 
-  #           echo "Starting new container..."
-  #           docker run -d --name $CONTAINER_NAME -p 8080:8080 $REGISTRY/$IMAGE_NAME:$TAG
+            echo "Starting new container..."
+            docker run -d --name $CONTAINER_NAME --network rosspallet-net -p 8080:8080 $REGISTRY/$IMAGE_NAME:$TAG
 
-  #           echo "Deployment complete!"
+            echo "Deployment complete!"
