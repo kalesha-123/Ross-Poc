@@ -1,23 +1,28 @@
-# Use a lightweight JDK base image
 FROM openjdk:17-jdk-slim
 
-# Install Tesseract OCR and dependencies
+# Install dependencies for Tesseract 5.x
 RUN apt-get update && \
-    apt-get install -y tesseract-ocr libtesseract-dev && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:alex-p/tesseract-ocr5 && \
+    apt-get update && \
+    apt-get install -y \
+        tesseract-ocr \
+        libtesseract-dev \
+        libleptonica-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Optional: set tessdata path (helps avoid runtime errors)
-ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+# (Optional) Install English language data
+RUN apt-get install -y tesseract-ocr-eng
 
-# Set working directory
+# Verify Tesseract installation
+RUN tesseract --version
+
+# Copy your app
 WORKDIR /app
-
-# Copy JAR from build context
 COPY target/*.jar app.jar
 
-# Expose port
+# Expose port if your app runs an HTTP server
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java","-jar","/app/app.jar"]
-
+# Run your app
+ENTRYPOINT ["java","-jar","app.jar"]
