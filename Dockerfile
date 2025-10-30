@@ -1,9 +1,12 @@
-FROM debian:bookworm-slim
+FROM ubuntu:24.04
 
-# Install OpenJDK 17 and Tesseract 5.x (already available in bookworm)
+# Install OpenJDK 17 and Tesseract 5.5.1
 RUN apt-get update && \
     apt-get install -y openjdk-17-jdk tesseract-ocr libtesseract-dev && \
     rm -rf /var/lib/apt/lists/*
+
+# Verify version (optional)
+RUN tesseract --version
 
 # Set Java environment
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
