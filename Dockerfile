@@ -1,11 +1,15 @@
 FROM ubuntu:24.04
 
-# Install OpenJDK 17 and Tesseract 5.5.1
-RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk tesseract-ocr libtesseract-dev && \
+# Install prerequisites
+RUN apt-get update && apt-get install -y software-properties-common
+
+# Add the official Tesseract OCR PPA (contains 5.5.1)
+RUN add-apt-repository ppa:alex-p/tesseract-ocr-devel -y && \
+    apt-get update && \
+    apt-get install -y tesseract-ocr libtesseract-dev openjdk-17-jdk && \
     rm -rf /var/lib/apt/lists/*
 
-# Verify version (optional)
+# Verify installed version (optional)
 RUN tesseract --version
 
 # Set Java environment
