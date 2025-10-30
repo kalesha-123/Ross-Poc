@@ -1,7 +1,7 @@
-// src/main/java/com/rossPalletScanApp/service/SummaryService.java
 package com.rossPalletScanApp.service;
 
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -33,80 +33,52 @@ public class SummaryService {
             headerStyle.setAlignment(HorizontalAlignment.CENTER);
             headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
-            // Sheet 1: Pallets summary
-            Sheet palletSheet = wb.createSheet("Pallets");
-            setupA4Print(palletSheet);
-            String[] palletCols = {
-                    "Pallet ID", "Pallet Code", "Master Container ID",
-                    "Capacity", "Box Count", "rossPo", "Color", "rossSkuNumber"
-            };
-            Row ph = palletSheet.createRow(0);
-            for (int c = 0; c < palletCols.length; c++) {
-                Cell cell = ph.createCell(c);
-                cell.setCellValue(palletCols[c]);
+            CellStyle titleStyle = wb.createCellStyle();
+            Font titleFont = wb.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 14);
+            titleStyle.setFont(titleFont);
+            titleStyle.setAlignment(HorizontalAlignment.CENTER);
+
+            // Create sheet
+            Sheet sheet = wb.createSheet("Receiving Worksheet");
+            setupA4Print(sheet);
+
+            // Title row
+            Row titleRow = sheet.createRow(0);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("Receiving Worksheet of Pallet");
+            titleCell.setCellStyle(titleStyle);
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 7));
+
+            // Header row
+            String[] cols = {"Appt", "PO", "SKU", "Description", "Style", "Color", "MLP", "LPN"};
+            Row header = sheet.createRow(2);
+            for (int i = 0; i < cols.length; i++) {
+                Cell cell = header.createCell(i);
+                cell.setCellValue(cols[i]);
                 cell.setCellStyle(headerStyle);
             }
 
-            int r = 1;
-            for (Map<String, Object> g : groups) {
-                Map<String, String> combo = safeMapString(g.get("combination"));
-                Row row = palletSheet.createRow(r++);
-                row.createCell(0).setCellValue(safeLong(g.get("palletId")));
-                row.createCell(1).setCellValue(safeStr(g.get("palletCode")));
-                row.createCell(2).setCellValue(safeStr(g.get("masterContainerId")));
-                row.createCell(3).setCellValue(safeInt(g.get("capacity")));
-                row.createCell(4).setCellValue(safeInt(g.get("boxCount")));
-                row.createCell(5).setCellValue(safeStr(combo.get("rossPo")));
-                row.createCell(6).setCellValue(safeStr(combo.get("color")));
-                row.createCell(7).setCellValue(safeStr(combo.get("rossSkuNumber")));
-            }
-            for (int c = 0; c < palletCols.length; c++) palletSheet.autoSizeColumn(c);
-
-            // Sheet 2: Boxes detail
-            Sheet boxSheet = wb.createSheet("Boxes");
-            setupA4Print(boxSheet);
-            String[] boxCols = {
-                    "Box ID", "Container ID", "Pallet ID", "Pallet Code",
-                    "rossPo", "Color", "rossSkuNumber", "Carton No",
-                    "Image", "OCR Confidence", "Style", "Qty",
-                    "Net Kg", "Gross Kg", "Measurement", "Consigned To",
-                    "Deliver To", "Deliver To Address", "Origin", "Created At"
-            };
-            Row bh = boxSheet.createRow(0);
-            for (int c = 0; c < boxCols.length; c++) {
-                Cell cell = bh.createCell(c);
-                cell.setCellValue(boxCols[c]);
-                cell.setCellStyle(headerStyle);
-            }
-
-            int br = 1;
-            for (Map<String, Object> g : groups) {
-                List<Map<String, Object>> boxes = safeListMap(g.get("boxes"));
-                for (Map<String, Object> b : boxes) {
-                    Row row = boxSheet.createRow(br++);
-                    row.createCell(0).setCellValue(safeLong(b.get("id")));
-                    row.createCell(1).setCellValue(safeStr(b.get("containerId")));
-                    row.createCell(2).setCellValue(safeLong(b.get("palletId")));
-                    row.createCell(3).setCellValue(safeStr(b.get("palletCode")));
-                    row.createCell(4).setCellValue(safeStr(b.get("rossPo")));
-                    row.createCell(5).setCellValue(safeStr(b.get("color")));
-                    row.createCell(6).setCellValue(safeStr(b.get("rossSkuNumber")));
-                    row.createCell(7).setCellValue(safeStr(b.get("cartonNo")));
-                    row.createCell(8).setCellValue(safeStr(b.get("imageFilename")));
-                    row.createCell(9).setCellValue(safeInt(b.get("ocrConfidence")));
-                    row.createCell(10).setCellValue(safeStr(b.get("rossStyle")));
-                    row.createCell(11).setCellValue(safeStr(b.get("quantity")));
-                    row.createCell(12).setCellValue(safeStr(b.get("netWeightKg")));
-                    row.createCell(13).setCellValue(safeStr(b.get("grossWeightKg")));
-                    row.createCell(14).setCellValue(safeStr(b.get("measurement")));
-                    row.createCell(15).setCellValue(safeStr(b.get("consignedTo")));
-                    row.createCell(16).setCellValue(safeStr(b.get("deliverTo")));
-                    row.createCell(17).setCellValue(safeStr(b.get("deliverToAddress")));
-                    row.createCell(18).setCellValue(safeStr(b.get("countryOfOrigin")));
-                    row.createCell(19).setCellValue(safeStr(b.get("createdAt")));
+            // Data rows
+            int rowIdx = 3;
+            for (Map<String, Object> pallet : groups) {
+                String mlp = safeStr(pallet.get("masterContainerId"));
+                List<Map<String, Object>> boxes = safeListMap(pallet.get("boxes"));
+                for (Map<String, Object> box : boxes) {
+                    Row row = sheet.createRow(rowIdx++);
+                    row.createCell(0).setCellValue(328); // Appt constant
+                    row.createCell(1).setCellValue(safeStr(box.get("rossPo")));
+                    row.createCell(2).setCellValue(safeStr(box.get("rossSkuNumber")));
+                    row.createCell(3).setCellValue(safeStr(box.get("itemDescription")));
+                    row.createCell(4).setCellValue(safeStr(box.get("rossStyle")));
+                    row.createCell(5).setCellValue(safeStr(box.get("color")));
+                    row.createCell(6).setCellValue(mlp);
+                    row.createCell(7).setCellValue(safeStr(box.get("containerId")));
                 }
             }
-            for (int c = 0; c < boxCols.length; c++) boxSheet.autoSizeColumn(c);
+
+            for (int i = 0; i < cols.length; i++) sheet.autoSizeColumn(i);
 
             // Output
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -114,7 +86,7 @@ public class SummaryService {
             byte[] bytes = out.toByteArray();
 
             String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-            String filename = "summary_" + ts + ".xlsx";
+            String filename = "receiving_worksheet_" + ts + ".xlsx";
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
