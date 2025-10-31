@@ -96,6 +96,14 @@
 			<artifactId>pdfbox</artifactId>
 			<version>2.0.30</version>
 		</dependency>
+		<!-- S3 Dependency -->
+		<!-- https://mvnrepository.com/artifact/software.amazon.awssdk/s3 -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>2.37.1</version>
+			<scope>compile</scope>
+		</dependency>
 
 	</dependencies>
 
