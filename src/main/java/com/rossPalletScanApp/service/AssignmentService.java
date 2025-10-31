@@ -41,74 +41,80 @@ public class AssignmentService {
 	 */
 	@Transactional
 	public ResponseEntity<Map<String, Object>> assignBoxToPallet(AssignBoxRequest request) {
-		try {
-			Pallet pallet = palletRepository.findById(request.palletId)
-					.orElseThrow(() -> new EntityNotFoundException("Pallet not found"));
+	    try {
+	        Pallet pallet = palletRepository.findById(request.palletId)
+	                .orElseThrow(() -> new EntityNotFoundException("Pallet not found"));
 
-			List<Box> existing = pallet.getBoxes();
-			int capacity = pallet.getCapacity();
-			if (existing.size() >= capacity) {
-				return bad("Pallet " + pallet.getCode() + " is full (" + capacity + ").");
-			}
+	        List<Box> existing = pallet.getBoxes();
+	        int capacity = pallet.getCapacity();
+	        if (existing.size() >= capacity) {
+	            return bad("Pallet " + pallet.getCode() + " is full (" + capacity + ").");
+	        }
 
-			OcrLabelDto o = request.box;
-			String reqPo = safe(o.rossPo);
-			String reqColor = safe(o.color);
-			String reqSku = safe(o.rossSkuNumber);
+	        OcrLabelDto o = request.box;
+	        String reqPo = safe(o.rossPo);
+	        String reqColor = safe(o.color);
+	        String reqSku = safe(o.rossSkuNumber);
 
-			if (!existing.isEmpty()) {
-				Box first = existing.get(0);
-				boolean sameCombo = eq(reqPo, first.getRossPo()) && eq(reqColor, first.getColor())
-						&& eq(reqSku, first.getRossSkuNumber());
-				if (!sameCombo) {
-					return bad("Pallet " + pallet.getCode() + " has different combination.");
-				}
-			}
+	        if (!existing.isEmpty()) {
+	            Box first = existing.get(0);
+	            boolean sameCombo = eq(reqPo, first.getRossPo()) && eq(reqColor, first.getColor())
+	                    && eq(reqSku, first.getRossSkuNumber());
+	            if (!sameCombo) {
+	                return bad("Pallet " + pallet.getCode() + " has different combination.");
+	            }
+	        }
 
-			// Always auto-allocate the next available containerId from pool
-			BoxContainerPool chosen = poolRepository.findFirstByAssignedFalseOrderByIdAsc()
-					.orElseThrow(() -> new IllegalStateException("No available box containerId in pool"));
-			chosen.setAssigned(true);
-			poolRepository.save(chosen);
+	        // Always auto-allocate the next available containerId from pool
+	        BoxContainerPool chosen = poolRepository.findFirstByAssignedFalseOrderByIdAsc()
+	                .orElseThrow(() -> new IllegalStateException("No available box containerId in pool"));
+	        chosen.setAssigned(true);
+	        poolRepository.save(chosen);
 
-			String containerIdToUse = chosen.getContainerId();
+	        String containerIdToUse = chosen.getContainerId();
 
-			// Build and save Box
-			Box box = new Box();
-			box.setPallet(pallet);
-			box.setContainerId(containerIdToUse);
+	        // ✅ Generate globally unique 3-digit appointment order
+	        Integer maxOrder = boxRepository.findMaxAppointmentOrder();
+	        int nextOrder = (maxOrder == null) ? 1 : maxOrder + 1;
+	        String appointmentOrder = String.format("%03d", nextOrder);
 
-			// Copy OCR fields
-			box.setImageFilename(o.imageFilename);
-			box.setOcrConfidence(o.ocrConfidence);
-			box.setRossPo(reqPo);
-			box.setRossStyle(o.rossStyle);
-			box.setItemDescription(o.itemDescription);
-			box.setColor(reqColor);
-			box.setRossSkuNumber(reqSku);
-			box.setQuantity(o.quantity);
-			box.setNetWeightKg(o.netWeightKg);
-			box.setGrossWeightKg(o.grossWeightKg);
-			box.setMeasurement(o.measurement);
-			box.setConsignedTo(o.consignedTo);
-			box.setDeliverTo(o.deliverTo);
-			box.setDeliverToAddress(o.deliverToAddress);
-			box.setCountryOfOrigin(o.countryOfOrigin);
-			box.setCartonNo(o.cartonNo);
+	        // Build and save Box
+	        Box box = new Box();
+	        box.setPallet(pallet);
+	        box.setContainerId(containerIdToUse);
 
-			Box saved = boxRepository.save(box);
-			BoxDto dto = toDto(saved);
+	        // Copy OCR fields
+	        box.setImageFilename(o.imageFilename);
+	        box.setOcrConfidence(o.ocrConfidence);
+	        box.setRossPo(reqPo);
+	        box.setRossStyle(o.rossStyle);
+	        box.setItemDescription(o.itemDescription);
+	        box.setColor(reqColor);
+	        box.setRossSkuNumber(reqSku);
+	        box.setQuantity(o.quantity);
+	        box.setNetWeightKg(o.netWeightKg);
+	        box.setGrossWeightKg(o.grossWeightKg);
+	        box.setMeasurement(o.measurement);
+	        box.setConsignedTo(o.consignedTo);
+	        box.setDeliverTo(o.deliverTo);
+	        box.setDeliverToAddress(o.deliverToAddress);
+	        box.setCountryOfOrigin(o.countryOfOrigin);
+	        box.setCartonNo(o.cartonNo);
+	        box.setAppointmentOrder(appointmentOrder); // ✅ Set unique appointment order
 
-			Map<String, Object> body = new LinkedHashMap<>();
-			body.put("status", "SUCCESS");
-			body.put("message", "Box assigned to pallet successfully");
-			body.put("data", dto);
+	        Box saved = boxRepository.save(box);
+	        BoxDto dto = toDto(saved);
 
-			return ResponseEntity.ok(body);
+	        Map<String, Object> body = new LinkedHashMap<>();
+	        body.put("status", "SUCCESS");
+	        body.put("message", "Box assigned to pallet successfully");
+	        body.put("data", dto);
 
-		} catch (EntityNotFoundException | IllegalStateException | IllegalArgumentException ex) {
-			return bad(ex.getMessage());
-		}
+	        return ResponseEntity.ok(body);
+
+	    } catch (EntityNotFoundException | IllegalStateException | IllegalArgumentException ex) {
+	        return bad(ex.getMessage());
+	    }
 	}
 
 	/**
@@ -305,7 +311,7 @@ public class AssignmentService {
 		d.deliverToAddress = b.getDeliverToAddress();
 		d.countryOfOrigin = b.getCountryOfOrigin();
 		d.cartonNo = b.getCartonNo();
-
+		d.appointmentOrder = b.getAppointmentOrder();
 		d.createdAt = b.getCreatedAt();
 		return d;
 	}

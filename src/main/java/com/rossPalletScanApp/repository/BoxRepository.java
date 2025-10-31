@@ -13,6 +13,9 @@ public interface BoxRepository extends JpaRepository<Box, Long> {
 	List<Box> findByPallet(Pallet pallet);
 
 	List<Box> findByPalletId(Long palletId);
+	
+	@Query("SELECT MAX(CAST(b.appointmentOrder AS int)) FROM Box b")
+	Integer findMaxAppointmentOrder();
 
 	@Modifying
 	@Query("DELETE FROM Box b WHERE b.pallet.id = :palletId")

@@ -37,8 +37,17 @@ public class Box {
  private String deliverToAddress;
  private String countryOfOrigin;
  private String cartonNo;
+ @Column(length = 3)
+ private String appointmentOrder;
 
- @Column(nullable = false)
+ public String getAppointmentOrder() {
+	return appointmentOrder;
+}
+
+public void setAppointmentOrder(String appointmentOrder) {
+	this.appointmentOrder = appointmentOrder;
+}
+@Column(nullable = false)
  private OffsetDateTime createdAt = OffsetDateTime.now();
 
  public Box() {}

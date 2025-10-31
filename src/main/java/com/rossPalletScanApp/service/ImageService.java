@@ -54,8 +54,8 @@ public class ImageService {
 		// Upload (private, no ACLs)
 		String key = uploadToS3AndReturnKey(file);
 		// Presigned URL (e.g., 30 minutes)
-		String presignedUrl = generatePresignedGetUrl(key, Duration.ofMinutes(30));
-
+		//String presignedUrl = generatePresignedGetUrl(key, Duration.ofMinutes(30));
+		String presignedUrl = "https://ross-label-extraction.s3.amazonaws.com/" + key;
 		// Build inference payload
 		Map<String, Object> payload = buildInferencePayload(presignedUrl);
 
@@ -100,8 +100,17 @@ public class ImageService {
 
 	private String sanitize(String filename) {
 		String base = (filename == null || filename.isBlank()) ? "file" : filename;
+
+		// Keep safe characters: letters, digits, dot, dash, underscore, space,
+		// parentheses
+		// Replace anything else with underscore
 		String cleaned = base.replaceAll("[^a-zA-Z0-9._\\- ()]", "_");
-		return URLEncoder.encode(cleaned, StandardCharsets.UTF_8);
+
+		// Normalize spaces
+		cleaned = cleaned.replaceAll(" +", " ").trim();
+
+		// IMPORTANT: do NOT URL-encode here.
+		return cleaned;
 	}
 
 	/** Build the exact payload your inference service expects */
