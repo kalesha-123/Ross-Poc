@@ -188,14 +188,14 @@ public class ImageService {
 			}
 
 			// 6) SUCCESS DTO
-			return RossLabelExtractResponse.of("SUCCESS", "Inference parsed successfully", null, // ocrConfidence
+			return RossLabelExtractResponse.of("SUCCESS", "Label extracted successfully", null, // ocrConfidence
 																									// (unknown)
 					imageFilename, null, // rawText (not stored in class, keep null)
 					rossPo, rossStyle, itemDescription, color, rossSkuNumber, quantity, netWeightKg, grossWeightKg,
 					measurement, consignedTo, deliverTo, countryOfOrigin, cartonNo);
 
 		} catch (Exception ex) {
-			return errorDto("Failed to parse inference: " + ex.getMessage(), s3Key);
+			return errorDto("Failed to extract the label: " + ex.getMessage(), s3Key);
 		}
 	}
 
