@@ -67,7 +67,7 @@ public class SummaryService {
                 List<Map<String, Object>> boxes = safeListMap(pallet.get("boxes"));
                 for (Map<String, Object> box : boxes) {
                     Row row = sheet.createRow(rowIdx++);
-                    row.createCell(0).setCellValue(328); // Appt constant
+                    row.createCell(0).setCellValue(safeStr(box.get("appointmentOrder"))); // Appt constant
                     row.createCell(1).setCellValue(safeStr(box.get("rossPo")));
                     row.createCell(2).setCellValue(safeStr(box.get("rossSkuNumber")));
                     row.createCell(3).setCellValue(safeStr(box.get("itemDescription")));
