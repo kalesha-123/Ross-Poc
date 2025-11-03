@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,7 @@ public class ImageService {
 		// Upload (private, no ACLs)
 		String key = uploadToS3AndReturnKey(file);
 		// Presigned URL (e.g., 30 minutes)
-		//String presignedUrl = generatePresignedGetUrl(key, Duration.ofMinutes(30));
+		// String presignedUrl = generatePresignedGetUrl(key, Duration.ofMinutes(30));
 		String presignedUrl = "https://ross-label-extraction.s3.amazonaws.com/" + key;
 		// Build inference payload
 		Map<String, Object> payload = buildInferencePayload(presignedUrl);
@@ -116,8 +117,14 @@ public class ImageService {
 	/** Build the exact payload your inference service expects */
 	private Map<String, Object> buildInferencePayload(String imageUrl) {
 		Map<String, Object> payload = new LinkedHashMap<>();
+
+		// Generate GUIDs
+		String guid = UUID.randomUUID().toString();
+
 		payload.put("user_msg", imageUrl);
-		payload.put("user_id", "user_001");
+		payload.put("user_id", guid);
+		payload.put("session_id", guid);
+		payload.put("request_id", guid);
 		payload.put("intent", "label_extraction:inference");
 		payload.put("version_id", "v1");
 		payload.put("default", true);
@@ -189,7 +196,7 @@ public class ImageService {
 
 			// 6) SUCCESS DTO
 			return RossLabelExtractResponse.of("SUCCESS", "Label extracted successfully", null, // ocrConfidence
-																									// (unknown)
+																								// (unknown)
 					imageFilename, null, // rawText (not stored in class, keep null)
 					rossPo, rossStyle, itemDescription, color, rossSkuNumber, quantity, netWeightKg, grossWeightKg,
 					measurement, consignedTo, deliverTo, countryOfOrigin, cartonNo);
